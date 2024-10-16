@@ -4,27 +4,30 @@
         [string]$KeyFilePath
     )
     
-    # Read the key from the key file
+    # Read the key from the key file (optional if not using encryption)
     $Key = Get-Content -Path $KeyFilePath -Raw
 
-    # Convert the key from string to a byte array
-    $KeyBytes = [Convert]::FromBase64String($Key)
-
-    # Decrypt the SecureString using the key
+    # Convert the SecureString to plain text
     $Pointer = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString)
     
     try {
-        # Convert SecureString to plain text
+        # Convert the BSTR pointer to a regular string
         $PlainText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($Pointer)
         return $PlainText
     }
     finally {
-        # Zero out the BSTR memory
+        # Zero out the BSTR memory to avoid memory leaks
         [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($Pointer)
     }
 }
 
-# Usage example:
-# Assuming you have a SecureString in a variable $secureString and a key file located at "C:\path\to\keyfile.key"
-$plainText = Convert-SecureStringToPlainText -SecureString $secureString -KeyFilePath "C:\path\to\keyfile.key"
+# Example usage
+# Create a SecureString for demonstration (this should be your existing SecureString)
+$secureString = ConvertTo-SecureString "YourSecretPassword" -AsPlainText -Force
+
+# Path to your key file (if necessary)
+$keyFilePath = "C:\path\to\your\keyfile.key"
+
+# Convert the SecureString to plain text
+$plainText = Convert-SecureStringToPlainText -SecureString $secureString -KeyFilePath $keyFilePath
 Write-Host "Plain Text: $plainText"
